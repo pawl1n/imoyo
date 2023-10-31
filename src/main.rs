@@ -20,18 +20,26 @@ fn main() {
 
     let cropped_image = crop_white(&image.to_rgba8());
     let cropped_image_name = image_name.to_owned() + "-cropped." + EXTENSION;
-    println!("Saved cropped image {cropped_image_name} {:?}", cropped_image.dimensions());
-        cropped_image
-            .save(cropped_image_name)
-            .expect("Failed to save image");
+
+    cropped_image
+        .save(cropped_image_name.clone())
+        .expect("Failed to save image");
+    println!(
+        "Saved cropped image {cropped_image_name} {:?}",
+        cropped_image.dimensions()
+    );
 
     if std::env::args().any(|arg| arg == "-s") {
         let square_image = fill_to_square(&cropped_image);
         let square_image_name = image_name.to_owned() + "-square." + EXTENSION;
-        println!("Square image size: {:?}", square_image.dimensions());
 
         square_image
-            .save(square_image_name)
+            .save(square_image_name.clone())
             .expect("Failed to save image");
+
+        println!(
+            "Saved square image {square_image_name} {:?}",
+            square_image.dimensions()
+        );
     }
 }
