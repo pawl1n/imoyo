@@ -18,7 +18,7 @@ fn main() {
         .decode()
         .expect("Failed to decode image");
 
-    let cropped_image = crop_white(&image.to_rgba8());
+    let cropped_image = crop_white(&image.to_rgb8());
     let cropped_image_name = image_name.to_owned() + "-cropped." + EXTENSION;
 
     cropped_image

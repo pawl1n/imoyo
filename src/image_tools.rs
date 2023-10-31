@@ -1,19 +1,15 @@
-use image::{Rgba, RgbaImage};
+use image::{Rgb, RgbImage};
 
-const WHITE: Rgba<u8> = Rgba([255, 255, 255, 1]);
+const WHITE: Rgb<u8> = Rgb([255, 255, 255]);
 
-fn is_white(pixel: &Rgba<u8>) -> bool {
+fn is_white(pixel: &Rgb<u8>) -> bool {
     let delta = 3;
     let rgb = pixel.0;
-
-    if rgb[3] == 0 {
-        return true;
-    }
 
     rgb.iter().all(|x| x > &(u8::MAX - delta))
 }
 
-fn is_row_neighbours_white(image: &RgbaImage, x: u32, y: u32) -> bool {
+fn is_row_neighbours_white(image: &RgbImage, x: u32, y: u32) -> bool {
     let trigger: u8 = 3;
     let mut count: u8 = 0;
 
@@ -30,7 +26,7 @@ fn is_row_neighbours_white(image: &RgbaImage, x: u32, y: u32) -> bool {
     true
 }
 
-fn is_column_neighbours_white(image: &RgbaImage, x: u32, y: u32) -> bool {
+fn is_column_neighbours_white(image: &RgbImage, x: u32, y: u32) -> bool {
     let trigger: u8 = 3;
     let mut count: u8 = 0;
 
@@ -47,7 +43,7 @@ fn is_column_neighbours_white(image: &RgbaImage, x: u32, y: u32) -> bool {
     true
 }
 
-pub fn crop_white(image: &RgbaImage) -> RgbaImage {
+pub fn crop_white(image: &RgbImage) -> RgbImage {
     let (width, height) = image.dimensions();
 
     let mut min_x = width / 2;
@@ -79,7 +75,7 @@ pub fn crop_white(image: &RgbaImage) -> RgbaImage {
     let cropped_width = max_x - min_x;
     let cropped_height = max_y - min_y;
 
-    let mut cropped_image = RgbaImage::new(cropped_width, cropped_height);
+    let mut cropped_image = RgbImage::new(cropped_width, cropped_height);
 
     for (x, y, pixel) in cropped_image.enumerate_pixels_mut() {
         *pixel = *image.get_pixel(x + min_x, y + min_y);
@@ -88,7 +84,7 @@ pub fn crop_white(image: &RgbaImage) -> RgbaImage {
     cropped_image
 }
 
-pub fn fill_to_square(image: &RgbaImage) -> RgbaImage {
+pub fn fill_to_square(image: &RgbImage) -> RgbImage {
     let (width, height) = image.dimensions();
 
     if width == height {
@@ -96,7 +92,7 @@ pub fn fill_to_square(image: &RgbaImage) -> RgbaImage {
     }
 
     let side = width.max(height);
-    let mut square_image = RgbaImage::new(side, side);
+    let mut square_image = RgbImage::new(side, side);
     let padding_y = ((side - height) as f32 / 2.0).ceil() as u32;
     let padding_x = ((side - width) as f32 / 2.0).ceil() as u32;
 
