@@ -3,6 +3,8 @@ use image_tools::*;
 
 use image::io::Reader as ImageReader;
 
+const EXTENSION: &str = "jpg";
+
 fn main() {
     let image_path = std::env::args().last().expect("No image name given");
     let image_name = std::path::Path::new(&image_path)
@@ -17,18 +19,19 @@ fn main() {
         .expect("Failed to decode image");
 
     let cropped_image = crop_white(&image.to_rgba8());
-    println!("Cropped image size: {:?}", cropped_image.dimensions());
-
-    if std::env::args().any(|arg| arg == "-s") {
+    let cropped_image_name = image_name.to_owned() + "-cropped." + EXTENSION;
+    println!("Saved cropped image {cropped_image_name} {:?}", cropped_image.dimensions());
         cropped_image
-            .save(image_name.to_owned() + "-cropped.jpg")
+            .save(cropped_image_name)
             .expect("Failed to save image");
 
+    if std::env::args().any(|arg| arg == "-s") {
         let square_image = fill_to_square(&cropped_image);
+        let square_image_name = image_name.to_owned() + "-square." + EXTENSION;
         println!("Square image size: {:?}", square_image.dimensions());
 
         square_image
-            .save(image_name.to_owned() + "-square.jpg")
+            .save(square_image_name)
             .expect("Failed to save image");
     }
 }
