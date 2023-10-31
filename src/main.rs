@@ -24,6 +24,7 @@ fn main() {
     cropped_image
         .save(cropped_image_name.clone())
         .expect("Failed to save image");
+
     println!(
         "Saved cropped image {cropped_image_name} {:?}",
         cropped_image.dimensions()
