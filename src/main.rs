@@ -6,7 +6,20 @@ use image::io::Reader as ImageReader;
 const EXTENSION: &str = "jpg";
 
 fn main() {
-    let image_path = std::env::args().last().expect("No image name given");
+    let mut image_path = std::env::args().last().expect("No image name given");
+
+    if image_path.starts_with("http") {
+        let name = image_path.split('/').last().expect("Invalid image name");
+
+        let mut file = std::fs::File::create(name).expect("Failed to create temp file");
+        reqwest::blocking::get(&image_path)
+            .expect("Failed to download image")
+            .copy_to(&mut file)
+            .expect("Failed to save image");
+
+        image_path = name.to_owned();
+    }
+
     let image_name = std::path::Path::new(&image_path)
         .file_stem()
         .expect("Can't read file stem name")
@@ -18,7 +31,7 @@ fn main() {
         .decode()
         .expect("Failed to decode image");
 
-    let cropped_image = crop_white(&image.to_rgb8());
+    let cropped_image = crop_white(&image.to_rgba8());
     let cropped_image_name = image_name.to_owned() + "-cropped." + EXTENSION;
 
     cropped_image

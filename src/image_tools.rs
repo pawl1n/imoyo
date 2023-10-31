@@ -1,15 +1,19 @@
-use image::{Rgb, RgbImage};
+use image::{Rgba, RgbaImage};
 
-const WHITE: Rgb<u8> = Rgb([255, 255, 255]);
+const WHITE: Rgba<u8> = Rgba([255, 255, 255, 0]);
 
-fn is_white(pixel: &Rgb<u8>) -> bool {
+fn is_white(pixel: &Rgba<u8>) -> bool {
     let delta = 3;
     let rgb = pixel.0;
+
+    if rgb[3] == 0 {
+        return true;
+    }
 
     rgb.iter().all(|x| x > &(u8::MAX - delta))
 }
 
-fn is_row_neighbours_white(image: &RgbImage, x: u32, y: u32) -> bool {
+fn is_row_neighbours_white(image: &RgbaImage, x: u32, y: u32) -> bool {
     let trigger: u8 = 3;
     let mut count: u8 = 0;
 
@@ -26,7 +30,7 @@ fn is_row_neighbours_white(image: &RgbImage, x: u32, y: u32) -> bool {
     true
 }
 
-fn is_column_neighbours_white(image: &RgbImage, x: u32, y: u32) -> bool {
+fn is_column_neighbours_white(image: &RgbaImage, x: u32, y: u32) -> bool {
     let trigger: u8 = 3;
     let mut count: u8 = 0;
 
@@ -43,7 +47,22 @@ fn is_column_neighbours_white(image: &RgbImage, x: u32, y: u32) -> bool {
     true
 }
 
-pub fn crop_white(image: &RgbImage) -> RgbImage {
+fn set_backgroung(pixel: &Rgba<u8>) -> Rgba<u8> {
+    if pixel.0[3] == 0 {
+        return *pixel;
+    }
+
+    let alpha = pixel.0[3] as f32 / 255.0;
+
+    Rgba([
+        (WHITE.0[0] as f32 * (1.0 - alpha) + pixel.0[0] as f32 * alpha) as u8,
+        (WHITE.0[1] as f32 * (1.0 - alpha) + pixel.0[1] as f32 * alpha) as u8,
+        (WHITE.0[2] as f32 * (1.0 - alpha) + pixel.0[2] as f32 * alpha) as u8,
+        pixel.0[3],
+    ])
+}
+
+pub fn crop_white(image: &RgbaImage) -> RgbaImage {
     let (width, height) = image.dimensions();
 
     let mut min_x = width / 2;
@@ -75,16 +94,16 @@ pub fn crop_white(image: &RgbImage) -> RgbImage {
     let cropped_width = max_x - min_x;
     let cropped_height = max_y - min_y;
 
-    let mut cropped_image = RgbImage::new(cropped_width, cropped_height);
+    let mut cropped_image = RgbaImage::new(cropped_width, cropped_height);
 
     for (x, y, pixel) in cropped_image.enumerate_pixels_mut() {
-        *pixel = *image.get_pixel(x + min_x, y + min_y);
+        *pixel = set_backgroung(image.get_pixel(x + min_x, y + min_y));
     }
 
     cropped_image
 }
 
-pub fn fill_to_square(image: &RgbImage) -> RgbImage {
+pub fn fill_to_square(image: &RgbaImage) -> RgbaImage {
     let (width, height) = image.dimensions();
 
     if width == height {
@@ -92,7 +111,7 @@ pub fn fill_to_square(image: &RgbImage) -> RgbImage {
     }
 
     let side = width.max(height);
-    let mut square_image = RgbImage::new(side, side);
+    let mut square_image = RgbaImage::new(side, side);
     let padding_y = ((side - height) as f32 / 2.0).ceil() as u32;
     let padding_x = ((side - width) as f32 / 2.0).ceil() as u32;
 
