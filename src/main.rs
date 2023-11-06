@@ -26,25 +26,40 @@ fn main() {
         .to_str()
         .expect("Invalid unicode");
 
-    let image = ImageReader::open(image_path.clone())
+    let mut image = ImageReader::open(image_path.clone())
         .expect("Failed to open image")
         .decode()
-        .expect("Failed to decode image");
+        .expect("Failed to decode image")
+        .to_rgba8();
 
-    let cropped_image = crop_white(&image.to_rgba8());
-    let cropped_image_name = image_name.to_owned() + "-cropped." + EXTENSION;
+    let mut padding: u32 = 0;
+    if let Some(i) = std::env::args()
+        .enumerate()
+        .find(|(_, arg)| arg.starts_with('-') && arg.contains('p'))
+        .map(|(i, _)| i)
+    {
+        padding = std::env::args()
+            .nth(i + 1)
+            .expect("No padding given")
+            .parse::<u32>()
+            .expect("Invalid padding");
+    }
 
-    cropped_image
-        .save(cropped_image_name.clone())
-        .expect("Failed to save image");
+    if std::env::args().any(|arg| arg.starts_with('-') && arg.contains('c')) {
+        image = crop_white(&image, padding);
+        let cropped_image_name = image_name.to_owned() + "-cropped." + EXTENSION;
+        image
+            .save(cropped_image_name.clone())
+            .expect("Failed to save image");
 
-    println!(
-        "Saved cropped image {cropped_image_name} {:?}",
-        cropped_image.dimensions()
-    );
+        println!(
+            "Saved cropped image {cropped_image_name} {:?}",
+            image.dimensions()
+        );
+    }
 
-    if std::env::args().any(|arg| arg == "-s") {
-        let square_image = fill_to_square(&cropped_image);
+    if std::env::args().any(|arg| arg.starts_with('-') && arg.contains('s')) {
+        let square_image = fill_to_square(&image);
         let square_image_name = image_name.to_owned() + "-square." + EXTENSION;
 
         square_image

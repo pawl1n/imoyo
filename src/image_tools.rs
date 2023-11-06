@@ -62,7 +62,7 @@ fn set_backgroung(pixel: &Rgba<u8>) -> Rgba<u8> {
     ])
 }
 
-pub fn crop_white(image: &RgbaImage) -> RgbaImage {
+pub fn crop_white(image: &RgbaImage, padding: u32) -> RgbaImage {
     let (width, height) = image.dimensions();
 
     let mut min_x = width / 2;
@@ -90,6 +90,11 @@ pub fn crop_white(image: &RgbaImage) -> RgbaImage {
             }
         }
     }
+
+    max_x = width.min(max_x + padding);
+    min_x = 0.max(min_x - padding);
+    max_y = height.min(max_y + padding);
+    min_y = 0.max(min_y - padding);
 
     let cropped_width = max_x - min_x;
     let cropped_height = max_y - min_y;
