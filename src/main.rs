@@ -7,21 +7,31 @@ use std::path::Path;
 const EXTENSION: &str = "jpg";
 
 fn main() {
+    let mut ignored: Vec<usize> = Vec::new();
+
     let crop = std::env::args().any(|arg| arg.starts_with('-') && arg.contains('c'));
     let square = std::env::args().any(|arg| arg.starts_with('-') && arg.contains('s'));
-    let padding = if crop { get_padding() } else { 0 };
+    let padding = if crop {
+        get_padding().map_or(0, |(i, p)| {
+            ignored.push(i);
 
-    get_image_paths().iter().for_each(|image_path| {
+            p
+        })
+    } else {
+        0
+    };
+
+    get_image_paths(&ignored).iter().for_each(|image_path| {
         let image_name = std::path::Path::new(&image_path)
             .file_stem()
-            .expect("Can't read file stem name")
+            .unwrap_or_else(|| panic!("Invalid unicode for {image_path}"))
             .to_str()
-            .expect("Invalid unicode");
+            .unwrap_or_else(|| panic!("Invalid unicode for {image_path}"));
 
         let mut image = ImageReader::open(image_path.clone())
-            .expect("Failed to open image")
+            .unwrap_or_else(|err| panic!("Failed to open {image_path}: {err}"))
             .decode()
-            .expect("Failed to decode image")
+            .unwrap_or_else(|err| panic!("Failed to decode {image_path}: {err}"))
             .to_rgba8();
 
         if crop {
@@ -30,7 +40,7 @@ fn main() {
             let cropped_image_name = image_name.to_owned() + "-cropped." + EXTENSION;
             image
                 .save(cropped_image_name.clone())
-                .expect("Failed to save image");
+                .unwrap_or_else(|err| panic!("Failed to save image {cropped_image_name}: {err}"));
 
             println!(
                 "Saved cropped image {cropped_image_name} {:?}",
@@ -44,7 +54,7 @@ fn main() {
 
             image
                 .save(square_image_name.clone())
-                .expect("Failed to save image");
+                .unwrap_or_else(|err| panic!("Failed to save image {square_image_name}: {err}"));
 
             println!(
                 "Saved square image {square_image_name} {:?}",
@@ -54,53 +64,54 @@ fn main() {
     });
 }
 
-fn get_padding() -> u32 {
+fn get_padding() -> Option<(usize, u32)> {
     std::env::args()
         .enumerate()
         .find(|(_, arg)| arg.starts_with('-') && arg.contains('p'))
-        .map_or(0, |(i, _)| {
-            std::env::args()
-                .nth(i + 1)
-                .expect("No padding given")
-                .parse::<u32>()
-                .expect("Invalid padding")
+        .map(|(i, _)| {
+            (
+                i,
+                std::env::args()
+                    .nth(i + 1)
+                    .expect("Missing padding")
+                    .parse::<u32>()
+                    .unwrap_or_else(|err| panic!("Failed to parse padding: {err}")),
+            )
         })
 }
 
-fn get_image_paths() -> Vec<String> {
+fn get_image_paths(ignored: &[usize]) -> Vec<String> {
     let mut paths: Vec<String> = Vec::new();
 
     std::env::args()
-        .filter(|arg| !arg.starts_with('-'))
+        .enumerate()
+        .filter(|(_, arg)| !arg.starts_with('-'))
+        .filter(|(i, _)| !ignored.contains(i))
+        .map(|(_, arg)| arg)
         .for_each(|arg| {
             if arg.starts_with("http") {
-                let name = arg.split('/').last().expect("Invalid image name");
-                let mut file = std::fs::File::create(name).expect("Failed to create temp file");
-
-                reqwest::blocking::get(&arg)
-                    .expect("Failed to download image")
-                    .copy_to(&mut file)
-                    .expect("Failed to save image");
-
-                paths.push(name.to_owned());
+                paths.push(download_image(&arg));
             } else if Path::new(&arg).exists() {
                 let path = Path::new(&arg);
 
                 if path.is_dir() {
                     paths.extend(
                         path.read_dir()
-                            .expect("Failed to read dir")
+                            .unwrap_or_else(|err| panic!("Failed to read dir {arg}: {err}"))
                             .map(|entry| {
                                 entry
-                                    .expect("Failed to read dir entry")
+                                    .unwrap_or_else(|err| panic!("Failed to read dir entry: {err}"))
                                     .path()
                                     .to_str()
-                                    .expect("Invalid unicode")
+                                    .unwrap_or_else(|| panic!("Invalid unicode in {arg} dir"))
                                     .to_owned()
                             })
                             .filter(|name| is_image(name)),
                     );
-                } else if is_image(path.to_str().expect("Invalid unicode")) {
+                } else if is_image(
+                    path.to_str()
+                        .unwrap_or_else(|| panic!("Invalid unicode in {arg}")),
+                ) {
                     paths.push(arg.to_owned());
                 }
             } else {
@@ -109,6 +120,22 @@ fn get_image_paths() -> Vec<String> {
         });
 
     paths
+}
+
+fn download_image(url: &str) -> String {
+    let name = url
+        .split('/')
+        .last()
+        .unwrap_or_else(|| panic!("Invalid image name for {url}"));
+    let mut file =
+        std::fs::File::create(name).unwrap_or_else(|_| panic!("Failed to create temp file {name}"));
+
+    reqwest::blocking::get(url)
+        .unwrap_or_else(|err| panic!("Failed to download image {url}: {err}"))
+        .copy_to(&mut file)
+        .unwrap_or_else(|err| panic!("Failed to save image {name}: {err}"));
+
+    name.to_owned()
 }
 
 fn is_image(image_path: &str) -> bool {
