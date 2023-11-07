@@ -48,7 +48,7 @@ fn is_column_neighbours_white(image: &RgbaImage, x: u32, y: u32) -> bool {
 }
 
 fn set_backgroung(pixel: &Rgba<u8>) -> Rgba<u8> {
-    if pixel.0[3] == 0 {
+    if pixel.0[3] == 1 {
         return *pixel;
     }
 
@@ -124,7 +124,7 @@ pub fn fill_to_square(image: &RgbaImage) -> RgbaImage {
         if x < padding_x || x >= side - padding_x || y < padding_y || y >= side - padding_y {
             *pixel = WHITE;
         } else {
-            *pixel = *image.get_pixel(x - padding_x, y - padding_y);
+            *pixel = set_backgroung(image.get_pixel(x - padding_x, y - padding_y));
         }
     }
     square_image.clone()
