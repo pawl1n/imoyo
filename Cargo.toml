@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 image = "^0.24.7"
-attohttpc = "^0.26.1"
+ureq = "^2.8.0"

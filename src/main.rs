@@ -133,15 +133,15 @@ fn download_image(url: &str) -> String {
     let mut file =
         File::create(name).unwrap_or_else(|_| panic!("Failed to create temp file {name}"));
 
-    let response = attohttpc::get(url)
-        .send()
-        .unwrap_or_else(|err| panic!("Failed to send request {url}: {err}"))
-        .error_for_status()
-        .unwrap_or_else(|err| panic!("Failed to download from {url}: {err}"))
-        .bytes()
-        .unwrap_or_else(|err| panic!("Failed to extract bytes from {url}: {err}"));
+    let mut buf: Vec<u8> = Vec::new();
 
-    file.write_all(&response)
+    let _ = ureq::get(url)
+        .call()
+        .unwrap_or_else(|err| panic!("Failed to download image {name}: {err}"))
+        .into_reader()
+        .read_to_end(&mut buf);
+
+    file.write_all(&buf)
         .unwrap_or_else(|err| panic!("Failed to save image {name}: {err}"));
 
     name.to_owned()
