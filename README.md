@@ -2,7 +2,7 @@
 Crop white background, make image square format, exclude all EXIF
 
 # Usage
-Can process images in folder, single image / link, multiple images / links
+Can process images in folder, single image (link), multiple images (links)
 
 ### Example
 
@@ -10,7 +10,7 @@ Can process images in folder, single image / link, multiple images / links
 cargo run -- -cs
 ```
 
-This will crop all white or transparent background and make suare image.
+This will crop all white or transparent background and make suare image
 
 ## Arguments:
 
@@ -24,4 +24,4 @@ p - crop padding in pixels
 cargo run -- -cp 10
 ```
 
-This will crop all white or transparent background with padding of 10 pixels to an image. Will add white background if image does not have enough pigels for padding.
+This will crop all white or transparent background with padding of 10 pixels to an image. Will add white background if image does not have enough pigels for padding
