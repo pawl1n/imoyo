@@ -2,6 +2,8 @@ mod image_tools;
 use image_tools::*;
 
 use image::io::Reader as ImageReader;
+use std::fs::File;
+use std::io::Write;
 use std::path::Path;
 
 const EXTENSION: &str = "jpg";
@@ -14,6 +16,7 @@ fn main() {
     let padding = if crop {
         get_padding().map_or(0, |(i, p)| {
             ignored.push(i);
+            ignored.push(i - 1);
 
             p
         })
@@ -70,7 +73,7 @@ fn get_padding() -> Option<(usize, u32)> {
         .find(|(_, arg)| arg.starts_with('-') && arg.contains('p'))
         .map(|(i, _)| {
             (
-                i,
+                i + 1,
                 std::env::args()
                     .nth(i + 1)
                     .expect("Missing padding")
@@ -128,11 +131,17 @@ fn download_image(url: &str) -> String {
         .last()
         .unwrap_or_else(|| panic!("Invalid image name for {url}"));
     let mut file =
-        std::fs::File::create(name).unwrap_or_else(|_| panic!("Failed to create temp file {name}"));
+        File::create(name).unwrap_or_else(|_| panic!("Failed to create temp file {name}"));
 
-    reqwest::blocking::get(url)
-        .unwrap_or_else(|err| panic!("Failed to download image {url}: {err}"))
-        .copy_to(&mut file)
+    let response = attohttpc::get(url)
+        .send()
+        .unwrap_or_else(|err| panic!("Failed to send request {url}: {err}"))
+        .error_for_status()
+        .unwrap_or_else(|err| panic!("Failed to download from {url}: {err}"))
+        .bytes()
+        .unwrap_or_else(|err| panic!("Failed to extract bytes from {url}: {err}"));
+
+    file.write_all(&response)
         .unwrap_or_else(|err| panic!("Failed to save image {name}: {err}"));
 
     name.to_owned()
