@@ -3,16 +3,20 @@ use image_tools::*;
 
 use image::io::Reader as ImageReader;
 use std::fs::File;
-use std::io::Write;
+use std::io::{BufReader, Write};
 use std::path::Path;
 
 const EXTENSION: &str = "jpg";
 
 fn main() {
-    let mut ignored: Vec<usize> = Vec::new();
+    let mut ignored: Vec<usize> = vec![0];
 
-    let crop = std::env::args().any(|arg| arg.starts_with('-') && arg.contains('c'));
-    let square = std::env::args().any(|arg| arg.starts_with('-') && arg.contains('s'));
+    let crop = std::env::args()
+        .skip(1)
+        .any(|arg| arg.starts_with('-') && arg.contains('c'));
+    let square = std::env::args()
+        .skip(1)
+        .any(|arg| arg.starts_with('-') && arg.contains('s'));
     let padding = if crop {
         get_padding().map_or(0, |(i, p)| {
             ignored.push(i);
@@ -34,6 +38,11 @@ fn main() {
         let mut image = ImageReader::open(image_path.clone())
             .unwrap_or_else(|err| panic!("Failed to open {image_path}: {err}"))
             .decode()
+            .or_else(|_| {
+                ImageReader::new(BufReader::new(File::open(image_path)?))
+                    .with_guessed_format()?
+                    .decode()
+            })
             .unwrap_or_else(|err| panic!("Failed to decode {image_path}: {err}"))
             .to_rgba8();
 
@@ -70,6 +79,7 @@ fn main() {
 fn get_padding() -> Option<(usize, u32)> {
     std::env::args()
         .enumerate()
+        .skip(1)
         .find(|(_, arg)| arg.starts_with('-') && arg.contains('p'))
         .map(|(i, _)| {
             (
@@ -111,10 +121,7 @@ fn get_image_paths(ignored: &[usize]) -> Vec<String> {
                             })
                             .filter(|name| is_image(name)),
                     );
-                } else if is_image(
-                    path.to_str()
-                        .unwrap_or_else(|| panic!("Invalid unicode in {arg}")),
-                ) {
+                } else {
                     paths.push(arg.to_owned());
                 }
             } else {
