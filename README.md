@@ -15,7 +15,9 @@ This will crop all white or transparent background and make suare image
 ## Arguments:
 
 c - crop
+
 s - square
+
 p - crop padding in pixels
 
 ### Example
