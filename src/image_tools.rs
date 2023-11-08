@@ -91,18 +91,28 @@ pub fn crop_white(image: &RgbaImage, padding: u32) -> RgbaImage {
         }
     }
 
-    max_x = width.min(max_x + padding);
-    min_x = 0.max(min_x - padding);
-    max_y = height.min(max_y + padding);
-    min_y = 0.max(min_y - padding);
+    let max_x: i32 = max_x as i32 + padding as i32;
+    let min_x: i32 = min_x as i32 - padding as i32;
+    let max_y: i32 = max_y as i32 + padding as i32;
+    let min_y: i32 = min_y as i32 - padding as i32;
 
-    let cropped_width = max_x - min_x;
-    let cropped_height = max_y - min_y;
+    let cropped_width = (max_x - min_x) as u32;
+    let cropped_height = (max_y - min_y) as u32;
 
     let mut cropped_image = RgbaImage::new(cropped_width, cropped_height);
 
     for (x, y, pixel) in cropped_image.enumerate_pixels_mut() {
-        *pixel = set_backgroung(image.get_pixel(x + min_x, y + min_y));
+        if x as i32 + min_x < 0
+            || x as i32 + min_x >= width as i32
+            || y as i32 + min_y < 0
+            || y as i32 + min_y >= height as i32
+        {
+            *pixel = WHITE;
+        } else {
+            *pixel = set_backgroung(
+                image.get_pixel((x as i32 + min_x) as u32, (y as i32 + min_y) as u32),
+            );
+        }
     }
 
     cropped_image
