@@ -48,10 +48,6 @@ fn is_column_neighbours_white(image: &RgbaImage, x: u32, y: u32) -> bool {
 }
 
 fn set_backgroung(pixel: &Rgba<u8>) -> Rgba<u8> {
-    if pixel.0[3] == 1 {
-        return *pixel;
-    }
-
     let alpha = pixel.0[3] as f32 / 255.0;
 
     Rgba([
