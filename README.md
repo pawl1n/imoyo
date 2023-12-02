@@ -20,7 +20,7 @@ s - square
 
 p - crop padding in pixels
 
-f - resize image (allowed [filter types](#filter-types): n, t, c, g, l)
+f - set [filter type](#filter-types) for image resizing (default Lancsoz)
 
 w - width of resized image
 
