@@ -20,7 +20,7 @@ s - square
 
 p - crop padding in pixels
 
-u - upscale image (allowed [filter types](#Filter): n, t, c, g, l)
+u - upscale image (allowed [filter types](#Filter-types): n, t, c, g, l)
 
 e - change image extension (default jpg)
 
