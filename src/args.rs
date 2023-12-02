@@ -1,12 +1,12 @@
 use image::imageops::FilterType;
 
-use crate::upscaler::Upscaler;
+use crate::scaler::Scaler;
 
 #[derive(Debug)]
 pub struct Args {
     pub crop: bool,
     pub square: bool,
-    pub upscaler: Option<Upscaler>,
+    pub scaler: Option<Scaler>,
     pub padding: u32,
     pub ignored: Vec<usize>,
     pub extension: String,
@@ -31,7 +31,7 @@ impl Args {
             0
         };
 
-        let upscaler = Self::read_upscaler(&mut ignored);
+        let upscaler = Self::read_scaler(&mut ignored);
 
         let extension =
             Self::get_parameter("e", &mut ignored).unwrap_or_else(|| String::from("jpg"));
@@ -39,7 +39,7 @@ impl Args {
         Self {
             crop,
             square,
-            upscaler,
+            scaler: upscaler,
             padding,
             ignored,
             extension,
@@ -61,9 +61,9 @@ impl Args {
             })
     }
 
-    fn read_upscaler(ignored: &mut Vec<usize>) -> Option<Upscaler> {
+    fn read_scaler(ignored: &mut Vec<usize>) -> Option<Scaler> {
         let filter_type: FilterType =
-            Self::get_parameter("u", ignored).map(|f| match f.as_str() {
+            Self::get_parameter("r", ignored).map(|f| match f.as_str() {
                 "n" => FilterType::Nearest,
                 "t" => FilterType::Triangle,
                 "c" => FilterType::CatmullRom,
@@ -77,6 +77,6 @@ impl Args {
                 .unwrap_or_else(|err| panic!("Failed to parse width: {err}"))
         })?;
 
-        Some(Upscaler::new(filter_type, width))
+        Some(Scaler::new(filter_type, width))
     }
 }

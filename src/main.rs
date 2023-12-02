@@ -1,7 +1,7 @@
 mod args;
 mod background;
 mod crop;
-mod upscaler;
+mod scaler;
 
 use background::Background;
 use crop::Crop;
@@ -49,9 +49,9 @@ fn main() {
                 path.push_str("-s");
             }
 
-            if let Some(upscaler) = &args.upscaler {
-                image = upscaler.upscale(DynamicImage::ImageRgba8(image)).to_rgba8();
-                path.push_str("-u");
+            if let Some(scaler) = &args.scaler {
+                image = scaler.resize(DynamicImage::ImageRgba8(image)).to_rgba8();
+                path.push_str("-r");
             }
 
             let bg = Background::white();
