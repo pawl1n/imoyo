@@ -41,24 +41,24 @@ fn main() {
 
             if args.crop {
                 image = crop.crop_white(&image);
-                path.push_str("-cropped");
+                path.push_str("-c");
             }
 
             if args.square {
                 image = crop.fill_to_square(&image);
-                path.push_str("-square");
+                path.push_str("-s");
             }
 
             if let Some(upscaler) = &args.upscaler {
                 image = upscaler.upscale(DynamicImage::ImageRgba8(image)).to_rgba8();
-                path.push_str("-upscaled");
+                path.push_str("-u");
             }
 
             let bg = Background::white();
             image = bg.set_background(&image);
 
             image
-                .save(path + "." + &args.extension)
+                .save(path + "-processed." + &args.extension)
                 .unwrap_or_else(|err| panic!("Failed to save image {image_name}: {err}"));
 
             println!("Processed image {image_name} {:?}", image.dimensions());
