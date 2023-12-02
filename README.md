@@ -20,6 +20,10 @@ s - square
 
 p - crop padding in pixels
 
+u - upscale image
+
+e - change image extension (default jpg)
+
 ### Example
 
 ```sh

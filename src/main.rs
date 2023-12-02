@@ -1,96 +1,68 @@
-mod image_tools;
-use image_tools::*;
+mod args;
+mod background;
+mod crop;
+mod upscaler;
+
+use background::Background;
+use crop::Crop;
 
 use image::io::Reader as ImageReader;
+use image::DynamicImage;
 use std::fs::File;
 use std::io::{BufReader, Write};
 use std::path::Path;
 
-const EXTENSION: &str = "jpg";
-
 fn main() {
-    let mut ignored: Vec<usize> = vec![0];
+    let args = args::Args::get();
 
-    let crop = std::env::args()
-        .skip(1)
-        .any(|arg| arg.starts_with('-') && arg.contains('c'));
-    let square = std::env::args()
-        .skip(1)
-        .any(|arg| arg.starts_with('-') && arg.contains('s'));
-    let padding = if crop {
-        get_padding().map_or(0, |(i, p)| {
-            ignored.push(i);
-            ignored.push(i - 1);
+    get_image_paths(&args.ignored)
+        .iter()
+        .for_each(|image_path| {
+            let image_name = std::path::Path::new(&image_path)
+                .file_stem()
+                .unwrap_or_else(|| panic!("Invalid unicode for {image_path}"))
+                .to_str()
+                .unwrap_or_else(|| panic!("Invalid unicode for {image_path}"));
 
-            p
-        })
-    } else {
-        0
-    };
+            let mut path = String::from(image_name);
 
-    get_image_paths(&ignored).iter().for_each(|image_path| {
-        let image_name = std::path::Path::new(&image_path)
-            .file_stem()
-            .unwrap_or_else(|| panic!("Invalid unicode for {image_path}"))
-            .to_str()
-            .unwrap_or_else(|| panic!("Invalid unicode for {image_path}"));
+            let mut image = ImageReader::open(image_path.clone())
+                .unwrap_or_else(|err| panic!("Failed to open {image_path}: {err}"))
+                .decode()
+                .or_else(|_| {
+                    ImageReader::new(BufReader::new(File::open(image_path)?))
+                        .with_guessed_format()?
+                        .decode()
+                })
+                .unwrap_or_else(|err| panic!("Failed to decode {image_path}: {err}"))
+                .to_rgba8();
 
-        let mut image = ImageReader::open(image_path.clone())
-            .unwrap_or_else(|err| panic!("Failed to open {image_path}: {err}"))
-            .decode()
-            .or_else(|_| {
-                ImageReader::new(BufReader::new(File::open(image_path)?))
-                    .with_guessed_format()?
-                    .decode()
-            })
-            .unwrap_or_else(|err| panic!("Failed to decode {image_path}: {err}"))
-            .to_rgba8();
+            let crop = Crop::new(args.padding, Background::white());
 
-        if crop {
-            image = crop_white(&image, padding);
+            if args.crop {
+                image = crop.crop_white(&image);
+                path.push_str("-cropped");
+            }
 
-            let cropped_image_name = image_name.to_owned() + "-cropped." + EXTENSION;
-            image
-                .save(cropped_image_name.clone())
-                .unwrap_or_else(|err| panic!("Failed to save image {cropped_image_name}: {err}"));
+            if args.square {
+                image = crop.fill_to_square(&image);
+                path.push_str("-square");
+            }
 
-            println!(
-                "Saved cropped image {cropped_image_name} {:?}",
-                image.dimensions()
-            );
-        }
+            if let Some(upscaler) = &args.upscaler {
+                image = upscaler.upscale(DynamicImage::ImageRgba8(image)).to_rgba8();
+                path.push_str("-upscaled");
+            }
 
-        if square {
-            image = fill_to_square(&image);
-            let square_image_name = image_name.to_owned() + "-square." + EXTENSION;
+            let bg = Background::white();
+            image = bg.set_background(&image);
 
             image
-                .save(square_image_name.clone())
-                .unwrap_or_else(|err| panic!("Failed to save image {square_image_name}: {err}"));
+                .save(path + "." + &args.extension)
+                .unwrap_or_else(|err| panic!("Failed to save image {image_name}: {err}"));
 
-            println!(
-                "Saved square image {square_image_name} {:?}",
-                image.dimensions()
-            );
-        }
-    });
-}
-
-fn get_padding() -> Option<(usize, u32)> {
-    std::env::args()
-        .enumerate()
-        .skip(1)
-        .find(|(_, arg)| arg.starts_with('-') && arg.contains('p'))
-        .map(|(i, _)| {
-            (
-                i + 1,
-                std::env::args()
-                    .nth(i + 1)
-                    .expect("Missing padding")
-                    .parse::<u32>()
-                    .unwrap_or_else(|err| panic!("Failed to parse padding: {err}")),
-            )
-        })
+            println!("Processed image {image_name} {:?}", image.dimensions());
+        });
 }
 
 fn get_image_paths(ignored: &[usize]) -> Vec<String> {
