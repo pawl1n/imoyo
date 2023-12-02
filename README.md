@@ -20,7 +20,7 @@ s - square
 
 p - crop padding in pixels
 
-r - resize image (allowed [filter types](#Filter-types): n, t, c, g, l)
+f - resize image (allowed [filter types](#filter-types): n, t, c, g, l)
 
 w - width of resized image
 
@@ -49,5 +49,5 @@ l - Lanczos with window 3
 ### Example
 
 ```sh
-cargo run -- -r l -w 2000 ./path-to-image
+cargo run -- -f l -w 2000 ./path-to-image
 ```

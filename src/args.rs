@@ -63,7 +63,7 @@ impl Args {
 
     fn read_scaler(ignored: &mut Vec<usize>) -> Option<Scaler> {
         let filter_type: FilterType =
-            Self::get_parameter("r", ignored).map_or(FilterType::Lanczos3, |f| match f.as_str() {
+            Self::get_parameter("f", ignored).map_or(FilterType::Lanczos3, |f| match f.as_str() {
                 "n" => FilterType::Nearest,
                 "t" => FilterType::Triangle,
                 "c" => FilterType::CatmullRom,
@@ -71,6 +71,8 @@ impl Args {
                 "l" => FilterType::Lanczos3,
                 &_ => panic!("Unknown filter type: {f}"),
             });
+
+        println!("Filter: {filter_type:?}");
 
         let width = Self::get_parameter("w", ignored).map(|w| {
             w.parse::<u32>()

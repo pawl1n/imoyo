@@ -40,16 +40,19 @@ fn main() {
             let crop = Crop::new(args.padding, Background::white());
 
             if args.crop {
+                println!("Cropping image {image_name}");
                 image = crop.crop_white(&image);
                 path.push_str("-c");
             }
 
             if args.square {
+                println!("Cropping image {image_name} to square");
                 image = crop.fill_to_square(&image);
                 path.push_str("-s");
             }
 
             if let Some(scaler) = &args.scaler {
+                println!("Resizing image {image_name}");
                 image = scaler.resize(DynamicImage::ImageRgba8(image)).to_rgba8();
                 path.push_str("-r");
             }
@@ -113,6 +116,8 @@ fn download_image(url: &str) -> String {
         File::create(name).unwrap_or_else(|_| panic!("Failed to create temp file {name}"));
 
     let mut buf: Vec<u8> = Vec::new();
+
+    println!("Downloading image {name}");
 
     let _ = ureq::get(url)
         .call()
