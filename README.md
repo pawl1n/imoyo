@@ -7,7 +7,7 @@ Can process images in folder, single image (link), multiple images (links)
 ### Example
 
 ```sh
-cargo run -- -cs
+cargo run -- -cs ./path-to-image
 ```
 
 This will crop all white or transparent background and make suare image
@@ -20,14 +20,16 @@ s - square
 
 p - crop padding in pixels
 
-u - upscale image (allowed [filter types](#Filter-types): n, t, c, g, l)
+r - resize image (allowed [filter types](#Filter-types): n, t, c, g, l)
+
+w - width of resized image
 
 e - change image extension (default jpg)
 
 ### Example
 
 ```sh
-cargo run -- -cp 10
+cargo run -- -cp 10 ./path-to-image
 ```
 
 This will crop all white or transparent background with padding of 10 pixels to an image. Will add white background if image does not have enough pigels for padding
@@ -43,3 +45,9 @@ c - Cubic: Catmull-Rom
 g - Gaussian
 
 l - Lanczos with window 3
+
+### Example
+
+```sh
+cargo run -- -r l -w 2000 ./path-to-image
+```
