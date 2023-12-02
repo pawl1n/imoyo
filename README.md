@@ -20,7 +20,7 @@ s - square
 
 p - crop padding in pixels
 
-u - upscale image
+u - upscale image (allowed [filter types](#Filter): n, t, c, g, l)
 
 e - change image extension (default jpg)
 
@@ -31,3 +31,15 @@ cargo run -- -cp 10
 ```
 
 This will crop all white or transparent background with padding of 10 pixels to an image. Will add white background if image does not have enough pigels for padding
+
+## Filter types
+
+n - Nearest Neighbor
+
+t - Linear: Triangle
+
+c - Cubic: Catmull-Rom
+
+g - Gaussian
+
+l - Lanczos with window 3
