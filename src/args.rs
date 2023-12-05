@@ -62,6 +62,11 @@ impl Args {
     }
 
     fn read_scaler(ignored: &mut Vec<usize>) -> Option<Scaler> {
+        let width = Self::get_parameter("w", ignored).map(|w| {
+            w.parse::<u32>()
+                .unwrap_or_else(|err| panic!("Failed to parse width: {err}"))
+        })?;
+
         let filter_type: FilterType =
             Self::get_parameter("f", ignored).map_or(FilterType::Lanczos3, |f| match f.as_str() {
                 "n" => FilterType::Nearest,
@@ -73,11 +78,6 @@ impl Args {
             });
 
         println!("Filter: {filter_type:?}");
-
-        let width = Self::get_parameter("w", ignored).map(|w| {
-            w.parse::<u32>()
-                .unwrap_or_else(|err| panic!("Failed to parse width: {err}"))
-        })?;
 
         Some(Scaler::new(filter_type, width))
     }
