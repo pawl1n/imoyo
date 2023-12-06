@@ -44,8 +44,8 @@ impl Crop {
         let max_y: i32 = max_y as i32 + self.padding as i32;
         let min_y: i32 = min_y as i32 - self.padding as i32;
 
-        let cropped_width = (max_x - min_x) as u32;
-        let cropped_height = (max_y - min_y) as u32;
+        let cropped_width = (max_x - min_x + 1) as u32;
+        let cropped_height = (max_y - min_y + 1) as u32;
 
         let mut cropped_image = RgbaImage::new(cropped_width, cropped_height);
 
