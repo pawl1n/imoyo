@@ -84,3 +84,27 @@ impl Background {
         new_image
     }
 }
+
+pub fn filter_alpha(image: &RgbaImage, alpha_filter: u8) -> RgbaImage {
+    let (width, height) = image.dimensions();
+
+    let mut new_image = RgbaImage::new(width, height);
+
+    for y in 0..height {
+        for x in 0..width {
+            let pixel = image.get_pixel(x, y);
+
+            new_image.put_pixel(
+                x,
+                y,
+                if pixel.0[3] < alpha_filter {
+                    Rgba([0, 0, 0, 0])
+                } else {
+                    *pixel
+                },
+            );
+        }
+    }
+
+    new_image
+}

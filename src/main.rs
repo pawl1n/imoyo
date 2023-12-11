@@ -39,6 +39,12 @@ fn main() {
 
             let crop = Crop::new(args.padding, Background::white());
 
+            if let Some(alpha_filter) = args.alpha_filter {
+                println!("Applying alpha filter {alpha_filter} to image {image_name}");
+                image = background::filter_alpha(&image, alpha_filter);
+                path.push_str("-a");
+            }
+
             if args.crop {
                 println!("Cropping image {image_name}");
                 image = crop.crop_white(&image);
@@ -111,6 +117,9 @@ fn download_image(url: &str) -> String {
     let name = url
         .split('/')
         .last()
+        .unwrap_or_else(|| panic!("Invalid image name for {url}"))
+        .split('?')
+        .next()
         .unwrap_or_else(|| panic!("Invalid image name for {url}"));
     let mut file =
         File::create(name).unwrap_or_else(|_| panic!("Failed to create temp file {name}"));

@@ -26,6 +26,8 @@ w - width of resized image
 
 e - change image extension (default jpg)
 
+a - apply alpha filter (exclude pixels with alpha less than filter value)
+
 ### Example
 
 ```sh

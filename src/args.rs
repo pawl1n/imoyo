@@ -10,6 +10,7 @@ pub struct Args {
     pub padding: u32,
     pub ignored: Vec<usize>,
     pub extension: String,
+    pub alpha_filter: Option<u8>,
 }
 
 impl Args {
@@ -36,6 +37,11 @@ impl Args {
         let extension =
             Self::get_parameter("e", &mut ignored).unwrap_or_else(|| String::from("jpg"));
 
+        let alpha_filter = Self::get_parameter("a", &mut ignored).map(|a| {
+            a.parse::<u8>()
+                .unwrap_or_else(|err| panic!("Failed to parse alpha filter: {err}"))
+        });
+
         Self {
             crop,
             square,
@@ -43,6 +49,7 @@ impl Args {
             padding,
             ignored,
             extension,
+            alpha_filter,
         }
     }
 
