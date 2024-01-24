@@ -24,7 +24,7 @@ fn main() {
                 .to_str()
                 .unwrap_or_else(|| panic!("Invalid unicode for {image_path}"));
 
-            let mut path = String::from(image_name);
+            let mut path = String::new();
 
             let mut image = ImageReader::open(image_path.clone())
                 .unwrap_or_else(|err| panic!("Failed to open {image_path}: {err}"))
@@ -63,14 +63,16 @@ fn main() {
                 path.push_str("-r");
             }
 
-            let bg = Background::white();
-            image = bg.set_background(&image);
+            if !path.is_empty() {
+                let bg = Background::white();
+                image = bg.set_background(&image);
 
-            image
-                .save(path + "-processed." + &args.extension)
-                .unwrap_or_else(|err| panic!("Failed to save image {image_name}: {err}"));
+                image
+                    .save(image_name.to_string() + &path + "-processed." + &args.extension)
+                    .unwrap_or_else(|err| panic!("Failed to save image {image_name}: {err}"));
 
-            println!("Processed image {image_name} {:?}", image.dimensions());
+                println!("Processed image {image_name} {:?}", image.dimensions());
+            }
         });
 }
 
