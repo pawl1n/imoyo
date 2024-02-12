@@ -2,7 +2,7 @@
 Crop white background, make image square format, exclude all EXIF
 
 # Usage
-Can process images in folder, single image (link), multiple images (links)
+Can process images in folder, single image (or link), multiple images (or links)
 
 ### Example
 
@@ -10,7 +10,7 @@ Can process images in folder, single image (link), multiple images (links)
 cargo run -- -cs ./path-to-image
 ```
 
-This will crop all white or transparent background and make suare image
+This will crop all white or transparent background and make square image
 
 ## Arguments:
 
