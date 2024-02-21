@@ -64,7 +64,12 @@ fn main() {
             }
 
             if !path.is_empty() {
-                let bg = Background::white();
+                let bg = args
+                    .background
+                    .map_or(Background::white(), Background::from_rgb);
+
+                println!("Setting background {:?}", bg.color);
+
                 image = bg.set_background(&image);
 
                 image

@@ -1,4 +1,4 @@
-use image::imageops::FilterType;
+use image::{imageops::FilterType, Rgb};
 
 use crate::scaler::Scaler;
 
@@ -11,6 +11,7 @@ pub struct Args {
     pub ignored: Vec<usize>,
     pub extension: String,
     pub alpha_filter: Option<u8>,
+    pub background: Option<Rgb<u8>>,
 }
 
 impl Args {
@@ -42,6 +43,22 @@ impl Args {
                 .unwrap_or_else(|err| panic!("Failed to parse alpha filter: {err}"))
         });
 
+        let background = Self::get_parameter("b", &mut ignored).map(|b| {
+            let rgb = b
+                .split(',')
+                .map(|x| {
+                    x.trim()
+                        .parse::<u8>()
+                        .unwrap_or_else(|err| panic!("Failed to parse background: {err}"))
+                })
+                .collect::<Vec<u8>>();
+            if rgb.len() != 3 {
+                panic!("Background must be r,g,b");
+            }
+
+            Rgb([rgb[0], rgb[1], rgb[2]])
+        });
+
         Self {
             crop,
             square,
@@ -50,6 +67,7 @@ impl Args {
             ignored,
             extension,
             alpha_filter,
+            background,
         }
     }
 

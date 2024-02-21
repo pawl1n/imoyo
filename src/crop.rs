@@ -55,7 +55,7 @@ impl Crop {
                 || y as i32 + min_y < 0
                 || y as i32 + min_y >= height as i32
             {
-                *pixel = self.bg.background;
+                *pixel = self.bg.color;
             } else {
                 *pixel = *image.get_pixel((x as i32 + min_x) as u32, (y as i32 + min_y) as u32);
             }
@@ -78,7 +78,7 @@ impl Crop {
 
         for (x, y, pixel) in square_image.enumerate_pixels_mut() {
             if x < padding_x || x >= side - padding_x || y < padding_y || y >= side - padding_y {
-                *pixel = self.bg.background;
+                *pixel = self.bg.color;
             } else {
                 *pixel = *image.get_pixel(x - padding_x, y - padding_y);
             }

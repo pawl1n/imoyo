@@ -1,17 +1,24 @@
-use image::{Rgba, RgbaImage};
+use image::{Rgb, Rgba, RgbaImage};
 
 const WHITE: Rgba<u8> = Rgba([255, 255, 255, 0]);
 
 #[derive(Debug)]
 pub struct Background {
-    pub background: Rgba<u8>,
+    pub color: Rgba<u8>,
     delta: u8,
 }
 
 impl Background {
     pub fn white() -> Self {
         Self {
-            background: WHITE,
+            color: WHITE,
+            delta: 3,
+        }
+    }
+
+    pub fn from_rgb(rgb: Rgb<u8>) -> Self {
+        Self {
+            color: Rgba([rgb.0[0], rgb.0[1], rgb.0[2], 0]),
             delta: 3,
         }
     }
@@ -64,9 +71,9 @@ impl Background {
         let alpha = pixel.0[3] as f32 / 255.0;
 
         Rgba([
-            (WHITE.0[0] as f32 * (1.0 - alpha) + pixel.0[0] as f32 * alpha) as u8,
-            (WHITE.0[1] as f32 * (1.0 - alpha) + pixel.0[1] as f32 * alpha) as u8,
-            (WHITE.0[2] as f32 * (1.0 - alpha) + pixel.0[2] as f32 * alpha) as u8,
+            (self.color.0[0] as f32 * (1.0 - alpha) + pixel.0[0] as f32 * alpha) as u8,
+            (self.color.0[1] as f32 * (1.0 - alpha) + pixel.0[1] as f32 * alpha) as u8,
+            (self.color.0[2] as f32 * (1.0 - alpha) + pixel.0[2] as f32 * alpha) as u8,
             u8::MAX,
         ])
     }
