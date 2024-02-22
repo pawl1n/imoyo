@@ -36,7 +36,7 @@ b – set background color (default white)
 cargo run -- -cp 10 ./path-to-image
 ```
 
-This will crop all white or transparent background with padding of 10 pixels to an image. Will add white background if image does not have enough pigels for padding
+This will crop all white or transparent background with padding of 10 pixels to an image. Will add white background if image does not have enough pigels for padding.
 
 ## Filter types
 
