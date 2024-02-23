@@ -40,25 +40,33 @@ fn main() {
             let crop = Crop::new(args.padding, Background::white());
 
             if let Some(alpha_filter) = args.alpha_filter {
-                println!("Applying alpha filter {alpha_filter} to image {image_name}");
+                if args.verbose {
+                    println!("Applying alpha filter {alpha_filter} to image {image_name}");
+                }
                 image = background::filter_alpha(&image, alpha_filter);
                 path.push_str("-a");
             }
 
             if args.crop {
-                println!("Cropping image {image_name}");
+                if args.verbose {
+                    println!("Cropping image {image_name}");
+                }
                 image = crop.crop_white(&image);
                 path.push_str("-c");
             }
 
             if args.square {
-                println!("Cropping image {image_name} to square");
+                if args.verbose {
+                    println!("Cropping image {image_name} to square");
+                }
                 image = crop.fill_to_square(&image);
                 path.push_str("-s");
             }
 
             if let Some(scaler) = &args.scaler {
-                println!("Resizing image {image_name}");
+                if args.verbose {
+                    println!("Resizing image {image_name}");
+                }
                 image = scaler.resize(DynamicImage::ImageRgba8(image)).to_rgba8();
                 path.push_str("-r");
             }
@@ -68,7 +76,9 @@ fn main() {
                     .background
                     .map_or(Background::white(), Background::from_rgb);
 
-                println!("Setting background {:?}", bg.color);
+                if args.verbose {
+                    println!("Setting background {:?}", bg.color);
+                }
 
                 image = bg.set_background(&image);
 

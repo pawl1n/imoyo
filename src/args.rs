@@ -12,11 +12,16 @@ pub struct Args {
     pub extension: String,
     pub alpha_filter: Option<u8>,
     pub background: Option<Rgb<u8>>,
+    pub verbose: bool,
 }
 
 impl Args {
     pub fn get() -> Self {
         let mut ignored: Vec<usize> = vec![0];
+
+        let verbose = std::env::args()
+            .skip(1)
+            .any(|arg| arg.starts_with('-') && arg.contains('v'));
 
         let crop = std::env::args()
             .skip(1)
@@ -68,6 +73,7 @@ impl Args {
             extension,
             alpha_filter,
             background,
+            verbose,
         }
     }
 
