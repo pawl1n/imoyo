@@ -14,6 +14,8 @@ This will crop all white or transparent background and make square image
 
 ## Arguments:
 
+v - verbose mode
+
 c – crop
 
 s – square
