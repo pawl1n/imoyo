@@ -14,23 +14,25 @@ This will crop all white or transparent background and make square image
 
 ## Arguments:
 
-v - verbose mode
+v - verbose mode.
 
-c – crop
+c – crop.
 
-s – square
+s – square.
 
-p – crop padding in pixels
+p – crop padding in pixels.
 
-f – set [filter type](#filter-types) for image resizing (default Lancsoz)
+f – set [filter type](#filter-types) for image resizing (default Lancsoz).
 
-w – width of resized image
+w – width of resized image.
 
-e – change image extension (default JPG)
+a – apply alpha filter (exclude pixels with alpha less than filter value).
 
-a – apply alpha filter (exclude pixels with alpha less than filter value)
+b – set background color (default white).
 
-b – set background color (default white)
+e - detect edges. Parameters: low_threshold, high_threshold. Saves image of detected edges in verbose mode.
+
+--extension – change image extension (default JPG).
 
 ### Example
 
@@ -38,19 +40,25 @@ b – set background color (default white)
 cargo run -- -cp 10 ./path-to-image
 ```
 
+Or
+
+```sh
+cargo run -- -e "5,50" ./path-to-image
+```
+
 This will crop all white or transparent background with padding of 10 pixels to an image. Will add white background if image does not have enough pigels for padding.
 
 ## Filter types
 
-n – Nearest Neighbor
+n – Nearest Neighbor.
 
-t – Linear: Triangle
+t – Linear: Triangle.
 
-c – Cubic: Catmull–Rom
+c – Cubic: Catmull–Rom.
 
-g – Gaussian
+g – Gaussian.
 
-l – Lanczos with window 3
+l – Lanczos with window 3.
 
 ### Example
 

@@ -51,7 +51,7 @@ fn main() {
                 if args.verbose {
                     println!("Cropping image {image_name}");
                 }
-                image = crop.crop_white(&image);
+                image = crop.crop_to_object(&image);
                 path.push_str("-c");
             }
 
@@ -69,6 +69,19 @@ fn main() {
                 }
                 image = scaler.resize(DynamicImage::ImageRgba8(image)).to_rgba8();
                 path.push_str("-r");
+            }
+
+            if args.edge_detection.in_use {
+                if args.verbose {
+                    println!("Detecting edges in image {image_name}");
+                }
+                image = crop.crop_to_edges_canny(
+                    &image,
+                    args.edge_detection.low_threshold,
+                    args.edge_detection.high_threshold,
+                    args.verbose,
+                );
+                path.push_str("-e");
             }
 
             if !path.is_empty() {

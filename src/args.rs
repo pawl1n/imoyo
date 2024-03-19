@@ -2,6 +2,13 @@ use image::{imageops::FilterType, Rgb};
 
 use crate::scaler::Scaler;
 
+#[derive(Debug, Default)]
+pub struct EdgeDetectionSettings {
+    pub in_use: bool,
+    pub low_threshold: f32,
+    pub high_threshold: f32,
+}
+
 #[derive(Debug)]
 pub struct Args {
     pub crop: bool,
@@ -13,6 +20,7 @@ pub struct Args {
     pub alpha_filter: Option<u8>,
     pub background: Option<Rgb<u8>>,
     pub verbose: bool,
+    pub edge_detection: EdgeDetectionSettings,
 }
 
 impl Args {
@@ -26,9 +34,11 @@ impl Args {
         let crop = std::env::args()
             .skip(1)
             .any(|arg| arg.starts_with('-') && arg.contains('c'));
+
         let square = std::env::args()
             .skip(1)
             .any(|arg| arg.starts_with('-') && arg.contains('s'));
+
         let padding = if crop {
             Self::get_parameter("p", &mut ignored).map_or(0, |p| {
                 p.parse::<u32>()
@@ -41,7 +51,7 @@ impl Args {
         let upscaler = Self::read_scaler(&mut ignored);
 
         let extension =
-            Self::get_parameter("e", &mut ignored).unwrap_or_else(|| String::from("jpg"));
+            Self::get_parameter("--extension", &mut ignored).unwrap_or_else(|| String::from("jpg"));
 
         let alpha_filter = Self::get_parameter("a", &mut ignored).map(|a| {
             a.parse::<u8>()
@@ -64,6 +74,8 @@ impl Args {
             Rgb([rgb[0], rgb[1], rgb[2]])
         });
 
+        let edge_detection = Self::get_edge_detection_settings(&mut ignored);
+
         Self {
             crop,
             square,
@@ -74,6 +86,7 @@ impl Args {
             alpha_filter,
             background,
             verbose,
+            edge_detection,
         }
     }
 
@@ -111,5 +124,24 @@ impl Args {
         println!("Filter: {filter_type:?}");
 
         Some(Scaler::new(filter_type, width))
+    }
+
+    fn get_edge_detection_settings(ignored: &mut Vec<usize>) -> EdgeDetectionSettings {
+        Self::get_parameter("e", ignored).map_or(EdgeDetectionSettings::default(), |e| {
+            let values = e.split(&[',', ';']).collect::<Vec<&str>>();
+            let low_threshold = values
+                .first()
+                .map_or(1.0, |v| v.trim().parse::<f32>().unwrap_or(1.0));
+
+            let high_threshold = values
+                .get(1)
+                .map_or(10.0, |v| v.trim().parse::<f32>().unwrap_or(10.0));
+
+            EdgeDetectionSettings {
+                in_use: true,
+                low_threshold,
+                high_threshold,
+            }
+        })
     }
 }
