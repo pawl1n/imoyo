@@ -1,11 +1,11 @@
 [package]
 name = "imoyo"
-version = "0.1.0"
+version = "0.1.5"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-image = { version = "^0.24.1", features = ["default"]}
+image = { version = "^0.25.0", features = ["default"]}
 ureq = "^2.9.6"
-imageproc = "^0.23.0"
+imageproc = "^0.24.0"
