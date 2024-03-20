@@ -93,10 +93,10 @@ fn main() {
                     println!("Setting background {:?}", bg.color);
                 }
 
-                image = bg.set_background(&image);
+                let rgb_image = bg.set_background(&image);
 
-                image
-                    .save(image_name.to_string() + &path + "-processed." + &args.extension)
+                rgb_image
+                    .save(image_name.to_string() + &path + "-processed.jpg")
                     .unwrap_or_else(|err| panic!("Failed to save image {image_name}: {err}"));
 
                 println!("Processed image {image_name} {:?}", image.dimensions());

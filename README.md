@@ -22,7 +22,7 @@ s – square.
 
 p – crop padding in pixels.
 
-f – set [filter type](#filter-types) for image resizing (default Lancsoz).
+f – set [filter type](#filter-types) for image resizing (default Lanczos).
 
 w – width of resized image.
 
@@ -31,8 +31,6 @@ a – apply alpha filter (exclude pixels with alpha less than filter value).
 b – set background color (default white).
 
 e - detect edges. Parameters: low_threshold, high_threshold. Saves image of detected edges in verbose mode.
-
---extension – change image extension (default JPG).
 
 ### Example
 

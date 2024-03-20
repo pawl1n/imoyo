@@ -1,4 +1,4 @@
-use image::{Rgb, Rgba, RgbaImage};
+use image::{Rgb, RgbImage, Rgba, RgbaImage};
 
 const WHITE: Rgba<u8> = Rgba([255, 255, 255, 0]);
 
@@ -67,20 +67,19 @@ impl Background {
         true
     }
 
-    pub fn rgb_pixel_with_background(&self, pixel: Rgba<u8>) -> Rgba<u8> {
+    pub fn rgb_pixel_with_background(&self, pixel: Rgba<u8>) -> Rgb<u8> {
         let alpha = pixel.0[3] as f32 / 255.0;
 
-        Rgba([
+        Rgb([
             (self.color.0[0] as f32 * (1.0 - alpha) + pixel.0[0] as f32 * alpha) as u8,
             (self.color.0[1] as f32 * (1.0 - alpha) + pixel.0[1] as f32 * alpha) as u8,
             (self.color.0[2] as f32 * (1.0 - alpha) + pixel.0[2] as f32 * alpha) as u8,
-            u8::MAX,
         ])
     }
 
-    pub fn set_background(&self, image: &RgbaImage) -> RgbaImage {
+    pub fn set_background(&self, image: &RgbaImage) -> RgbImage {
         let (width, height) = image.dimensions();
-        let mut new_image = RgbaImage::new(width, height);
+        let mut new_image = RgbImage::new(width, height);
 
         for y in 0..height {
             for x in 0..width {
