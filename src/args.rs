@@ -16,7 +16,6 @@ pub struct Args {
     pub scaler: Option<Scaler>,
     pub padding: u32,
     pub ignored: Vec<usize>,
-    pub extension: String,
     pub alpha_filter: Option<u8>,
     pub background: Option<Rgb<u8>>,
     pub verbose: bool,
@@ -50,9 +49,6 @@ impl Args {
 
         let upscaler = Self::read_scaler(&mut ignored);
 
-        let extension =
-            Self::get_parameter("--extension", &mut ignored).unwrap_or_else(|| String::from("jpg"));
-
         let alpha_filter = Self::get_parameter("a", &mut ignored).map(|a| {
             a.parse::<u8>()
                 .unwrap_or_else(|err| panic!("Failed to parse alpha filter: {err}"))
@@ -82,7 +78,6 @@ impl Args {
             scaler: upscaler,
             padding,
             ignored,
-            extension,
             alpha_filter,
             background,
             verbose,
