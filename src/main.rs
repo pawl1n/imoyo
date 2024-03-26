@@ -1,107 +1,100 @@
 mod args;
 mod background;
 mod crop;
+mod image_reader;
 mod scaler;
 
 use background::Background;
 use crop::Crop;
 
-use image::io::Reader as ImageReader;
 use image::DynamicImage;
+use image_reader::ImageProperties;
 use std::fs::File;
-use std::io::{BufReader, Write};
+use std::io::Write;
 use std::path::Path;
 
 fn main() {
     let args = args::Args::get();
 
-    get_image_paths(&args.ignored)
-        .iter()
-        .for_each(|image_path| {
-            let image_name = std::path::Path::new(&image_path)
-                .file_stem()
-                .unwrap_or_else(|| panic!("Invalid unicode for {image_path}"))
-                .to_str()
-                .unwrap_or_else(|| panic!("Invalid unicode for {image_path}"));
+    for image_path in get_image_paths(&args.ignored) {
+        let image_properties = match ImageProperties::read(&image_path) {
+            Ok(props) => props,
+            Err(message) => {
+                println!("{message}");
+                continue;
+            }
+        };
 
-            let mut path = String::new();
+        let image_name = image_properties.name;
+        let mut image = image_properties.image;
 
-            let mut image = ImageReader::open(image_path.clone())
-                .unwrap_or_else(|err| panic!("Failed to open {image_path}: {err}"))
-                .decode()
-                .or_else(|_| {
-                    ImageReader::new(BufReader::new(File::open(image_path)?))
-                        .with_guessed_format()?
-                        .decode()
-                })
-                .unwrap_or_else(|err| panic!("Failed to decode {image_path}: {err}"))
-                .to_rgba8();
+        let mut path = String::new();
 
-            let crop = Crop::new(args.padding, Background::white());
+        let crop = Crop::new(args.padding, Background::white());
 
-            if let Some(alpha_filter) = args.alpha_filter {
-                if args.verbose {
-                    println!("Applying alpha filter {alpha_filter} to image {image_name}");
-                }
-                image = background::filter_alpha(&image, alpha_filter);
-                path.push_str("-a");
+        if let Some(alpha_filter) = args.alpha_filter {
+            if args.verbose {
+                println!("Applying alpha filter {alpha_filter} to image {image_name}");
+            }
+            image = background::filter_alpha(&image, alpha_filter);
+            path.push_str("-a");
+        }
+
+        if args.crop {
+            if args.verbose {
+                println!("Cropping image {image_name}");
+            }
+            image = crop.crop_to_object(&image);
+            path.push_str("-c");
+        }
+
+        if args.square {
+            if args.verbose {
+                println!("Cropping image {image_name} to square");
+            }
+            image = crop.fill_to_square(&image);
+            path.push_str("-s");
+        }
+
+        if let Some(scaler) = &args.scaler {
+            if args.verbose {
+                println!("Resizing image {image_name}");
+            }
+            image = scaler.resize(DynamicImage::ImageRgba8(image)).to_rgba8();
+            path.push_str("-r");
+        }
+
+        if args.edge_detection.in_use {
+            if args.verbose {
+                println!("Detecting edges in image {image_name}");
+            }
+            image = crop.crop_to_edges_canny(
+                &image,
+                args.edge_detection.low_threshold,
+                args.edge_detection.high_threshold,
+                args.verbose,
+            );
+            path.push_str("-e");
+        }
+
+        if !path.is_empty() {
+            let bg = args
+                .background
+                .map_or(Background::white(), Background::from_rgb);
+
+            if args.verbose {
+                println!("Setting background {:?}", bg.color);
             }
 
-            if args.crop {
-                if args.verbose {
-                    println!("Cropping image {image_name}");
-                }
-                image = crop.crop_to_object(&image);
-                path.push_str("-c");
-            }
+            let rgb_image = bg.set_background(&image);
 
-            if args.square {
-                if args.verbose {
-                    println!("Cropping image {image_name} to square");
-                }
-                image = crop.fill_to_square(&image);
-                path.push_str("-s");
-            }
+            rgb_image
+                .save(image_name.to_string() + &path + "-processed.jpg")
+                .unwrap_or_else(|err| panic!("Failed to save image {image_name}: {err}"));
 
-            if let Some(scaler) = &args.scaler {
-                if args.verbose {
-                    println!("Resizing image {image_name}");
-                }
-                image = scaler.resize(DynamicImage::ImageRgba8(image)).to_rgba8();
-                path.push_str("-r");
-            }
-
-            if args.edge_detection.in_use {
-                if args.verbose {
-                    println!("Detecting edges in image {image_name}");
-                }
-                image = crop.crop_to_edges_canny(
-                    &image,
-                    args.edge_detection.low_threshold,
-                    args.edge_detection.high_threshold,
-                    args.verbose,
-                );
-                path.push_str("-e");
-            }
-
-            if !path.is_empty() {
-                let bg = args
-                    .background
-                    .map_or(Background::white(), Background::from_rgb);
-
-                if args.verbose {
-                    println!("Setting background {:?}", bg.color);
-                }
-
-                let rgb_image = bg.set_background(&image);
-
-                rgb_image
-                    .save(image_name.to_string() + &path + "-processed.jpg")
-                    .unwrap_or_else(|err| panic!("Failed to save image {image_name}: {err}"));
-
-                println!("Processed image {image_name} {:?}", image.dimensions());
-            }
-        });
+            println!("Processed image {image_name} {:?}", image.dimensions());
+        }
+    }
 }
 
 fn get_image_paths(ignored: &[usize]) -> Vec<String> {
@@ -175,4 +168,6 @@ fn is_image(image_path: &str) -> bool {
         || image_path.ends_with(".png")
         || image_path.ends_with(".jpeg")
         || image_path.ends_with(".webp")
+        || image_path.ends_with(".tif")
+        || image_path.ends_with(".avif")
 }

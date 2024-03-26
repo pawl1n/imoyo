@@ -420,7 +420,7 @@ checksum = "44feda355f4159a7c757171a77de25daf6411e217b4cabd03bd6650690468126"
 
 [[package]]
 name = "imoyo"
-version = "0.1.0"
+version = "0.1.5"
 dependencies = [
  "image",
  "imageproc",
